@@ -1,0 +1,144 @@
+// Employee.java
+
+package com.validation;
+
+import javax.validation.constraints.Pattern;
+
+public class Employee {
+	private String name;
+	@Pattern(regexp="^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*]).{6,15}$",message=" length must be 6 to 15 charcters ")
+	private String pass;
+	
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getPass() {
+		return pass;
+	}
+	public void setPass(String pass) {
+		this.pass = pass;
+	}	
+}
+
+
+// EmployeeController.java
+
+package com.validation;
+
+import javax.validation.Valid;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+public class EmployeeController {
+
+	@RequestMapping("/hello")
+	public String display(Model m) {
+		m.addAttribute("emp" , new Employee());
+		return "viewpage";
+	}
+	
+	@RequestMapping("/helloagain")
+	public String submitForm( @Valid @ModelAttribute("emp") Employee e, BindingResult br)
+	{
+		if(br.hasErrors()) 
+			return "viewpage";
+		else 
+			return "final";
+	}
+}
+
+
+// index.jsp
+
+<html>
+<body>
+<a href="hello">click here...</a>
+</body>
+</html>
+
+// viewpage.jsp
+
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+    <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<!DOCTYPE html>
+<html>
+<head>
+<title>Login Page</title>
+<style>
+.error{color:red}
+</style>
+</head>
+<body>
+<form:form action="helloagain" modelAttribute="emp">
+Username: <form:input path="name"/><br><br>
+Password(*): <form:password path="pass"/>
+<form:errors path="pass" cssClass="error"/><br><br>
+<input type="submit" value = "Login"/>
+</form:form>
+</body>
+</html>
+
+// final.jsp
+
+<html>
+<body>
+Username: ${emp.name}<br><br>
+Password: ${emp.pass}
+</body>
+</html>
+
+// spring-servlet.xml
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/mvc
+	http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+	<!-- Provide support for component scanning -->
+	<context:component-scan base-package="com.validation"/>
+	
+	<mvc:annotation-driven/>
+	
+	<bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/jsp/"></property>
+		<property name="suffix" value=".jsp"></property>
+	</bean>
+</beans>
+
+// web.xml
+
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns="http://java.sun.com/xml/ns/javaee"
+ xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
+	<display-name>SpringMVC-Validation</display-name>
+	<servlet>
+	<servlet-name>spring</servlet-name>
+	<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+	<init-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>/WEB-INF/spring-servlet.xml</param-value> 
+	</init-param>
+	<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+	<servlet-name>spring</servlet-name>
+	<url-pattern>/</url-pattern>
+	</servlet-mapping>
+</web-app>
+
